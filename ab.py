@@ -41,12 +41,46 @@ https://docs.github.com/en/repositories/working-with-files/managing-large-files/
 """
 
 
-def main():
+"""
+FUTURE:
+    consider using
+    GitPython
+    as recommended by
+    https://stackoverflow.com/questions/15315573/how-can-i-call-git-pull-from-within-python
+Currently using simple subprocess calls instead of GitPython,
+as recommended by
+https://stackoverflow.com/questions/11113896/use-git-commands-within-python-code
+
+"""
+
+import os
+import subprocess
+
+def main(repo_path=None, phone_path=None, date_range=None):
     print("starting ab...")
+    if(repo_path):
+        print("Current working directory: ")
+        print( os.getcwd() )
+        os.chdir('/tmp')
+        os.chdir(repo_path)
+        print( os.getcwd() )
+        subprocess.run(["git", "push"])
+        print( "pushed!" )
+    if(phone_path):
+        print("Using phone path: ")
+        print(phone_path)
+
     print("done!")
 
 if __name__ == "__main__":
-    main()
+    r_path = "/media/sf_t/n/2021-friendly-octo-disco/2021_b/"
+    p_path = ""
+    d_range = ["202104", "20210419"]
+    main(
+        repo_path = r_path,
+        phone_path = p_path,
+        date_range = d_range
+        )
 
 # as recommended by https://wiki.python.org/moin/Vim :
 # vim: set tabstop=8 expandtab shiftwidth=4 softtabstop=4 :
