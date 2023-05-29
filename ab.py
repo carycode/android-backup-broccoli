@@ -62,6 +62,10 @@ seems to be no longer necessary.
 
 """
 FUTURE:
+add logging, perhaps
+https://python-docs.readthedocs.io/en/latest/writing/logging.html
+
+FUTURE:
     consider using
     GitPython
     as recommended by
@@ -75,9 +79,47 @@ https://stackoverflow.com/questions/11113896/use-git-commands-within-python-code
 import os
 import subprocess
 
+
+def get_folder_size_M(repo_path=None):
+    # using "du" for historical reasons;
+    # many other approaches are mentioned in
+    # https://stackoverflow.com/questions/1392413/calculating-a-directorys-size-using-python
+    print("getting folder size ...")
+    result = subprocess.run([
+        "du",
+        "--summarize",
+        "--block-size=1M", # in units of 1 MByte (1024*1024)
+        # (rather than default units of 1024 bytes)
+        repo_path
+        ],
+        text=True, # FUTURE: ???
+        capture_output=True # put outputs in result, rather than printing them immediately
+        )
+    print( result.stderr );
+    size_string = result.stdout
+    print( size_string );
+    # gives something like "2180438\t../.git"
+    # we assume there's whitespace immediately after the digits.
+    number = int(size_string.split()[0])
+    return number
+
+def round_up( x, y ):
+    # plain "//" rounds toward -inf;
+    # negate twice to round toward +inf.
+    result = -(-x // y)
+    return result
+
+
 def get_unstaged_photos(photo_dir=None):
-    photo_list = os.listdir(photo_dir)
+    # Future: perhaps 
+    # look at all the photos in the folder
+    #   photo_list = os.listdir(photo_dir)
+    # in order to sort into
+    # appropriate folders.
+
     # only photos (*.jpg)
+    # ".jpg" == untracked_files[-4:]
+
     # only "untracked" files
     # (files that have not yet been committed)
     result = subprocess.run([
@@ -91,10 +133,66 @@ def get_unstaged_photos(photo_dir=None):
         )
     print( result.stderr );
     untracked_files = result.stdout
-    print("untracked files:")
-    print(untracked_files)
-    # FIXME:
-    photo_list = []
+
+
+    return untracked_files
+
+def push_to_remote(repo_path=None):
+    if(repo_path):
+        print("Current working directory: ")
+        print( os.getcwd() )
+        os.chdir('/tmp')
+        os.chdir(repo_path)
+        print( os.getcwd() )
+        subprocess.run(["git", "push"])
+        print( "pushed!" )
+
+        # consider adding another file,
+        # but only if
+        # (a) repo will be less than 5 GB
+        # (perhaps rough estimate
+        # (current_size + 0.1 GB + 2 * file_size < 5 GB) ?
+        # and
+        # (b) each file is less than 50 MB
+        # and
+        # (c) it's in the date range for this repository.
+        untracked_files = get_unstaged_photos()
+        print(len(untracked_files), "untracked files:")
+        print(repr(untracked_files))
+
+        # Are there any untracked files?
+        # (pythonic idiom, see
+        # https://stackoverflow.com/questions/53513/how-do-i-check-if-a-list-is-empty
+        # for details).
+        if untracked_files:
+
+            # This assumes we're
+            # exactly 1 subdirectory deep in the repo.
+            # FUTURE: handle other locations in the repo
+            # (the root of the repo, or
+            # nested 2 deep, or etc.
+            # ).
+            git_folder_size_M = get_folder_size_M("../.git")
+            print("git folder size: ", git_folder_size_M, " MByte.")
+
+            the_file = untracked_files[0]
+            assert( "20210528_100040.jpg" == the_file )
+            print("considering file: ")
+            print(the_file)
+            file_size = os.path.getsize( the_file )
+            file_stat = os.stat( the_file )
+            file_size_b = file_stat.st_size
+            assert( file_size_b == file_size )
+            file_size_M = round_up( file_size, (1024*1024) )
+            print("with file size: ", file_size, " MByte")
+
+
+def pull_from_phone(phone_path=None):
+    if(phone_path):
+        print("Using phone path: ")
+        print(phone_path)
+        # FIXME:
+
 
 def main(repo_path=None, phone_path=None, date_range=None):
     print("starting ab...")
@@ -105,30 +203,9 @@ def main(repo_path=None, phone_path=None, date_range=None):
     # from the date-time stamp on each photo,
     # which respository
     # to push it to.
-    if(repo_path):
-        print("Current working directory: ")
-        print( os.getcwd() )
-        os.chdir('/tmp')
-        os.chdir(repo_path)
-        print( os.getcwd() )
-        subprocess.run(["git", "push"])
-        print( "pushed!" )
-        # consider adding another file,
-        # but only if
-        # (a) repo will be less than 5 GB
-        # (perhaps rough estimate
-        # (current_size + 0.1 GB + 2 * file_size < 5 GB) ?
-        # and
-        # (b) each file is less than 50 MB
-        # and
-        # (c) it's in the date range for this repository.
-        unstaged_photos = get_unstaged_photos()
-        print( "unstaged photos: ")
-        print( unstaged_photos )
 
-    if(phone_path):
-        print("Using phone path: ")
-        print(phone_path)
+    push_to_remote(repo_path)
+    pull_from_phone(phone_path)
 
     print("done!")
 
