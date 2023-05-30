@@ -117,8 +117,6 @@ def get_unstaged_photos(photo_dir=None):
     # in order to sort into
     # appropriate folders.
 
-    # only photos (*.jpg)
-    # ".jpg" == untracked_files[-4:]
 
     # only "untracked" files
     # (files that have not yet been committed)
@@ -132,10 +130,11 @@ def get_unstaged_photos(photo_dir=None):
         capture_output=True # put outputs in result, rather than printing them immediately
         )
     print( result.stderr );
-    untracked_files = result.stdout
-
-
+    untracked_file_string = result.stdout
+    # assume no newlines in file names
+    untracked_files = untracked_file_string.splitlines()
     return untracked_files
+
 
 def push_to_remote(repo_path=None):
     if(repo_path):
@@ -184,7 +183,31 @@ def push_to_remote(repo_path=None):
             file_size_b = file_stat.st_size
             assert( file_size_b == file_size )
             file_size_M = round_up( file_size, (1024*1024) )
-            print("with file size: ", file_size, " MByte")
+            print("with file size: ", file_size_M, " MByte")
+            do_it = True
+            if( ".jpg" != the_file[-4:] ):
+                # only photos (*.jpg)
+                print( the_file,
+                    " doesn't seem to be a photo; skipping."
+                    )
+                do_it = False;
+            if( file_size_M >= 50 ):
+                # that are less than 50 MB
+                print( the_file,
+                    " seems to be too large: ",
+                    file_size_M, " MByte."
+                    )
+                do_it = False;
+            max_repo_size_M = 2500 # ???? FUTURE: ????
+            if( git_folder_size_M + file_size_M > max_repo_size_M):
+                print(
+                    "repo too large; it's already ",
+                    git_folder_size_M,
+                    " MBytes."
+                    )
+                do_it = False;
+            if( do_it ):
+                print("pushing ", the_file)
 
 
 def pull_from_phone(phone_path=None):
