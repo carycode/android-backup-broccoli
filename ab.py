@@ -256,11 +256,13 @@ def push_to_remote(repo_path=None, date_range=None):
             # FUTURE:
             # perhaps pull another photo
             # from phone?
-            print("sleeping ...")
-            sleep(10) # seconds
             # remove first item from array
             # (possibly leaving it empty).
-            untracked_file = untracked_files[1:]
+            untracked_files = untracked_files[1:]
+            if(1): # if(verbose):
+                print(len(untracked_files), "untracked files.")
+            print("sleeping ...")
+            sleep(10) # seconds
 
 
 
