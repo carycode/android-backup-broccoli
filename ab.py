@@ -78,6 +78,7 @@ https://stackoverflow.com/questions/11113896/use-git-commands-within-python-code
 
 import os
 import subprocess
+from time import sleep
 
 
 def get_folder_size_M(repo_path=None):
@@ -107,6 +108,7 @@ def round_up( x, y ):
     # plain "//" rounds toward -inf;
     # negate twice to round toward +inf.
     result = -(-x // y)
+    assert( type(result) is int )
     return result
 
 
@@ -136,7 +138,7 @@ def get_unstaged_photos(photo_dir=None):
     return untracked_files
 
 
-def push_to_remote(repo_path=None):
+def push_to_remote(repo_path=None, date_range=None):
     if(repo_path):
         print("Current working directory: ")
         print( os.getcwd() )
@@ -156,28 +158,37 @@ def push_to_remote(repo_path=None):
         # and
         # (c) it's in the date range for this repository.
         untracked_files = get_unstaged_photos()
-        print(len(untracked_files), "untracked files:")
-        print(repr(untracked_files))
+        print(len(untracked_files), "untracked files.")
+        verbose = False
+        if(verbose):
+            print(repr(untracked_files))
+
+        # FUTURE:
+        # untracked_total_size_M = total_size_M(untracked_files)
+
+        # This assumes we're
+        # exactly 1 subdirectory deep in the repo.
+        # FUTURE: handle other locations in the repo
+        # (the root of the repo, or
+        # nested 2 deep, or etc.
+        # ).
+        git_folder_size_M = get_folder_size_M("../.git")
+        print("git folder size: ", git_folder_size_M, " MByte.")
+
+
 
         # Are there any untracked files?
         # (pythonic idiom, see
         # https://stackoverflow.com/questions/53513/how-do-i-check-if-a-list-is-empty
         # for details).
-        if untracked_files:
-
-            # This assumes we're
-            # exactly 1 subdirectory deep in the repo.
-            # FUTURE: handle other locations in the repo
-            # (the root of the repo, or
-            # nested 2 deep, or etc.
-            # ).
-            git_folder_size_M = get_folder_size_M("../.git")
-            print("git folder size: ", git_folder_size_M, " MByte.")
-
+        while( untracked_files ):
+            print("")
             the_file = untracked_files[0]
-            assert( "20210528_100040.jpg" == the_file )
-            print("considering file: ")
-            print(the_file)
+            # On my phone,
+            # file names look something like:
+            # "20210528_100040.jpg"
+            print("considering file: ", the_file)
+
             file_size = os.path.getsize( the_file )
             file_stat = os.stat( the_file )
             file_size_b = file_stat.st_size
@@ -198,8 +209,17 @@ def push_to_remote(repo_path=None):
                     file_size_M, " MByte."
                     )
                 do_it = False;
+            if( date_range and not
+                (date_range[0] < the_file <= date_range[1])
+                ):
+                print( the_file,
+                    " Doesn't seem to be in the range ",
+                    date_range
+                    )
+                do_it = False;
             max_repo_size_M = 2500 # ???? FUTURE: ????
-            if( git_folder_size_M + file_size_M > max_repo_size_M):
+            git_folder_size_M += file_size_M
+            if( git_folder_size_M > max_repo_size_M):
                 print(
                     "repo too large; it's already ",
                     git_folder_size_M,
@@ -207,7 +227,42 @@ def push_to_remote(repo_path=None):
                     )
                 do_it = False;
             if( do_it ):
-                print("pushing ", the_file)
+                if(verbose):
+                    print("adding ", the_file)
+                subprocess.run(["git", "add",
+                    # "--dry-run",
+                    the_file])
+                if(verbose):
+                    print("committing ", the_file)
+                # avoid printing the lengthy status info
+                # (such as every untracked file)
+                # that the 'git commit' command produces.
+                result = subprocess.run(
+                    ["git", "commit",
+                    # "--dry-run",
+                    "-m", "add photo"],
+                    text=True, # FUTURE: ???
+                    capture_output=True # put outputs in result, rather than printing them immediately
+                    )
+                print( result.stderr );
+                if(verbose):
+                    print( result.stdout )
+                if(verbose):
+                    print("pushing ", the_file)
+                subprocess.run(["git", "push",
+                    # "--dry-run"
+                    ])
+                print( the_file, " pushed!" )
+            # FUTURE:
+            # perhaps pull another photo
+            # from phone?
+            print("sleeping ...")
+            sleep(10) # seconds
+            # remove first item from array
+            # (possibly leaving it empty).
+            untracked_file = untracked_files[1:]
+
+
 
 
 def pull_from_phone(phone_path=None):
@@ -227,7 +282,7 @@ def main(repo_path=None, phone_path=None, date_range=None):
     # which respository
     # to push it to.
 
-    push_to_remote(repo_path)
+    push_to_remote(repo_path, date_range)
     pull_from_phone(phone_path)
 
     print("done!")
@@ -235,6 +290,7 @@ def main(repo_path=None, phone_path=None, date_range=None):
 if __name__ == "__main__":
     r_path = "/media/sf_t/n/2021-friendly-octo-disco/2021_b/"
     r_path = "/media/sf_t/k/2021-turbo-tube-memory/2021"
+    d_range = ["202105", "20210531"]
     # inspired by
     # "Accessing MTP mounted device in terminal"
     # https://unix.stackexchange.com/questions/464767/accessing-mtp-mounted-device-in-terminal
@@ -242,7 +298,7 @@ if __name__ == "__main__":
     main(
         repo_path = r_path,
         phone_path = p_path,
-        date_range = ["202104", "20210419"]
+        date_range = d_range
         )
 
 # as recommended by https://wiki.python.org/moin/Vim :
