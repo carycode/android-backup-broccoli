@@ -30,6 +30,15 @@ https://docs.github.com/en/repositories/working-with-files/managing-large-files/
 
 # Related
 
+* "#photo-sharing" topic on github
+https://github.com/topics/photo-sharing
+
+* "Anfora ... a decentralized social network to share photos."
+https://github.com/anforaProject/anfora
+
+* "Instead is a privacy-focused photo sharing service. ... not even the owner of the server can see posts."
+https://github.com/danielbrauer/instead
+
 * "Storing Images and Demos in your Repo"
 Storing-Images-On-Github.md
 https://gist.github.com/joncardasis/e6494afd538a400722545163eb2e1fa5
