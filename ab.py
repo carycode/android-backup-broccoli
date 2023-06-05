@@ -2,6 +2,7 @@
 
 """
 ab.py : android backup
+README.md
 
 backup photos to github
 
@@ -68,11 +69,29 @@ https://python-docs.readthedocs.io/en/latest/writing/logging.html
 FUTURE:
     consider using
     GitPython
+    https://gitpython.readthedocs.io/
     as recommended by
     https://stackoverflow.com/questions/15315573/how-can-i-call-git-pull-from-within-python
 Currently using simple subprocess calls instead of GitPython,
 as recommended by
 https://stackoverflow.com/questions/11113896/use-git-commands-within-python-code
+
+FUTURE:
+Perhaps attempt to commit many or all the photos at once;
+then if something goes wrong,
+undo that commit
+and retry with half as many photos
+only giving up
+when it's been reduced to 1 photo
+and even that doesn't work.
+Perhaps using the "undo commit" approach
+described in
+* "You just committed a large file and can't push to GitHub"
+https://lcolladotor.github.io/2020/03/18/you-just-committed-a-large-file-and-can-t-push-to-github/
+and
+* "How do I undo the most recent local commits in Git?"
+https://stackoverflow.com/questions/927358/how-do-i-undo-the-most-recent-local-commits-in-git
+
 
 """
 
@@ -111,6 +130,14 @@ def round_up( x, y ):
     assert( type(result) is int )
     return result
 
+def get_file_size_M(the_file=None):
+    # FUTURE: pick one method, rather than both
+    file_size = os.path.getsize( the_file )
+    file_stat = os.stat( the_file )
+    file_size_b = file_stat.st_size
+    assert( file_size_b == file_size )
+    file_size_M = round_up( file_size, (1024*1024) )
+    return file_size_M
 
 def get_unstaged_photos(photo_dir=None):
     # Future: perhaps 
@@ -176,7 +203,6 @@ def push_to_remote(repo_path=None, date_range=None):
         print("git folder size: ", git_folder_size_M, " MByte.")
 
 
-
         # Are there any untracked files?
         # (pythonic idiom, see
         # https://stackoverflow.com/questions/53513/how-do-i-check-if-a-list-is-empty
@@ -189,11 +215,8 @@ def push_to_remote(repo_path=None, date_range=None):
             # "20210528_100040.jpg"
             print("considering file: ", the_file)
 
-            file_size = os.path.getsize( the_file )
-            file_stat = os.stat( the_file )
-            file_size_b = file_stat.st_size
-            assert( file_size_b == file_size )
-            file_size_M = round_up( file_size, (1024*1024) )
+            file_size_M = get_file_size_M(the_file)
+
             print("with file size: ", file_size_M, " MByte")
             do_it = True
             if( ".jpg" != the_file[-4:] ):
@@ -292,7 +315,16 @@ def main(repo_path=None, phone_path=None, date_range=None):
 if __name__ == "__main__":
     r_path = "/media/sf_t/n/2021-friendly-octo-disco/2021_b/"
     r_path = "/media/sf_t/k/2021-turbo-tube-memory/2021"
-    d_range = ["202105", "20210531"]
+
+    r_path = "/media/sf_t/2021-cautious-enigma/2021"
+    d_range = ["202105", "20210599"]
+
+    r_path = "/media/sf_t/2021-friendly-octo-goggles/2021"
+    d_range = ["202106", "20210699"]
+
+    r_path = "/media/sf_t/2021-fuzzy-octo-sniffle/2021"
+    d_range = ["202107", "20210999"]
+
     # inspired by
     # "Accessing MTP mounted device in terminal"
     # https://unix.stackexchange.com/questions/464767/accessing-mtp-mounted-device-in-terminal
