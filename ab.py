@@ -98,6 +98,7 @@ https://stackoverflow.com/questions/927358/how-do-i-undo-the-most-recent-local-c
 import os
 import subprocess
 from time import sleep
+import glob
 
 
 def get_folder_size_M(repo_path=None):
@@ -295,6 +296,32 @@ def pull_from_phone(phone_path=None):
         print("Using phone path: ")
         print(phone_path)
         # FIXME:
+        # "Cross-platform way of getting temp directory in Python"
+        # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
+        dest_temp_folder = "/media/sf_t/new"
+        source_file_pattern = os.path.join(
+                phone_path, 
+                "202101" +
+                "*.jpg"
+                )
+        print("Using file pattern: ", source_file_pattern)
+        photo_files = glob.glob(source_file_pattern)
+        print( photo_files )
+        print("Found ", len(photo_files), " files.")
+        if(photo_files):
+            for the_file in photo_files:
+                print("moving ", the_file)
+                # FIXME:
+                # how to decide
+                # which files to move ("mv")
+                # and which files to copy ("cp") ?
+                """
+                subprocess.run(["cp",
+                    ])
+                """
+        else:
+            print( photo_files, "no files found.")
+    print("... done pulling from phone.")
 
 
 def main(repo_path=None, phone_path=None, date_range=None):
@@ -324,6 +351,11 @@ if __name__ == "__main__":
 
     r_path = "/media/sf_t/2021-fuzzy-octo-sniffle/2021"
     d_range = ["202107", "20210999"]
+
+
+    r_path = "/media/sf_t/2021-potential-octo-guide/2021"
+    d_range = ["202110", "20211299"]
+
 
     # inspired by
     # "Accessing MTP mounted device in terminal"
