@@ -295,17 +295,28 @@ def pull_from_phone(phone_path=None):
     if(phone_path):
         print("Using phone path: ")
         print(phone_path)
+        os.chdir(phone_path)
+        print( os.getcwd() )
         # FIXME:
         # "Cross-platform way of getting temp directory in Python"
         # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
-        dest_temp_folder = "/media/sf_t/new"
+        # FUTURE:
+        # "How to rsync to android"
+        # https://askubuntu.com/questions/343502/how-to-rsync-to-android
+        dest_temp_folder = "/media/sf_t/new/"
+        dest_temp_folder = "/media/sf_t/2021-potential-octo-guide/2021"
+        """
         source_file_pattern = os.path.join(
                 phone_path, 
-                "202101" +
+                "20210" +
                 "*.jpg"
                 )
+        """
+        source_file_pattern = "20211[0-9]*.jpg"
         print("Using file pattern: ", source_file_pattern)
         photo_files = glob.glob(source_file_pattern)
+        print("Found ", len(photo_files), " files.")
+        photo_files.sort()
         print( photo_files )
         print("Found ", len(photo_files), " files.")
         if(photo_files):
@@ -315,10 +326,11 @@ def pull_from_phone(phone_path=None):
                 # how to decide
                 # which files to move ("mv")
                 # and which files to copy ("cp") ?
-                """
                 subprocess.run(["cp",
+                    the_file,
+                    dest_temp_folder
                     ])
-                """
+                sleep(1) # seconds
         else:
             print( photo_files, "no files found.")
     print("... done pulling from phone.")
@@ -326,6 +338,7 @@ def pull_from_phone(phone_path=None):
 
 def main(repo_path=None, phone_path=None, date_range=None):
     print("starting ab...")
+    subprocess.run(["date"])
     # FUTURE:
     # consider supporting
     # several repositories.
@@ -337,6 +350,7 @@ def main(repo_path=None, phone_path=None, date_range=None):
     push_to_remote(repo_path, date_range)
     pull_from_phone(phone_path)
 
+    subprocess.run(["date"])
     print("done!")
 
 if __name__ == "__main__":
@@ -360,7 +374,13 @@ if __name__ == "__main__":
     # inspired by
     # "Accessing MTP mounted device in terminal"
     # https://unix.stackexchange.com/questions/464767/accessing-mtp-mounted-device-in-terminal
+    # "Where are MTP mounted devices located in the filesystem?"
+    # https://askubuntu.com/questions/342319/where-are-mtp-mounted-devices-located-in-the-filesystem
+    # "What is the Android phone MTP mount point in (K)ubuntu 20.04 if not /run/user/1000/gvfs?"
+    # https://askubuntu.com/questions/1339104/what-is-the-android-phone-mtp-mount-point-in-kubuntu-20-04-if-not-run-user-10
     p_path = "/run/user/1000/gvfs/mtp:host=SAMSUNG_SAMSUNG_Android_R58MC496J4W/Internal storage/DCIM/Camera"
+    # The path for my phone includes ":" and a space.
+    # But it appears I don't need to use "glob.escape".
     main(
         repo_path = r_path,
         phone_path = p_path,
