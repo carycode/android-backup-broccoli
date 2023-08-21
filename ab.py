@@ -171,7 +171,12 @@ def push_to_remote(repo_path=None, date_range=None):
         print("Current working directory: ")
         print( os.getcwd() )
         os.chdir('/tmp')
-        os.chdir(repo_path)
+        try:
+            os.chdir(repo_path)
+        except FileNotFoundError:
+            print( os.getcwd() )
+            print("whoops! can't find: ", repo_path)
+            return
         print( os.getcwd() )
         subprocess.run(["git", "push"])
         print( "pushed!" )
@@ -203,6 +208,7 @@ def push_to_remote(repo_path=None, date_range=None):
         git_folder_size_M = get_folder_size_M("../.git")
         print("git folder size: ", git_folder_size_M, " MByte.")
 
+        max_repo_size_M = 2500 # ???? FUTURE: ????
 
         # Are there any untracked files?
         # (pythonic idiom, see
@@ -241,7 +247,6 @@ def push_to_remote(repo_path=None, date_range=None):
                     date_range
                     )
                 do_it = False;
-            max_repo_size_M = 2500 # ???? FUTURE: ????
             git_folder_size_M += file_size_M
             if( git_folder_size_M > max_repo_size_M):
                 print(
@@ -292,10 +297,20 @@ def push_to_remote(repo_path=None, date_range=None):
 
 
 def pull_from_phone(phone_path=None):
+    if(not phone_path):
+        print("phone path: [", phone_path, "] empty -- skipping.")
+        return
     if(phone_path):
         print("Using phone path: ")
         print(phone_path)
-        os.chdir(phone_path)
+        try:
+            os.chdir(phone_path)
+        except FileNotFoundError:
+            print("whoops! can't find: ", phone_path)
+            print("Try unplugging the phone and plugging it in again.")
+            print("Try restarting the phone.")
+            return
+        print("Found phone at: ")
         print( os.getcwd() )
         # FIXME:
         # "Cross-platform way of getting temp directory in Python"
@@ -335,6 +350,94 @@ def pull_from_phone(phone_path=None):
             print( photo_files, "no files found.")
     print("... done pulling from phone.")
 
+
+"""
+If temporary folder is *empty*,
+we want to pull from the *phone* first
+(perhaps into temporary folder?).
+
+If temporarary folder is *not* empty,
+we want to make sure the local repo
+is finished
+committing all files,
+(perhaps and also
+syncing with remote repo,
+),
+*then*
+move file in the appropriate range (if any)
+from the temp folder
+to the local repo,
+(and of course
+then syncing with remote repo
+).
+
+If some file is mangled,
+what we *don't* want to do
+is keep only the mangled version
+and throw away any other versions.
+At first,
+we keep all versions
+in separate folders.
+Later,
+we'll
+*inform* the user that mangling was detected,
+(how exactly???)
+and in the most common case
+(one first is the *start* of the file,
+the rest was somehow truncated
+).
+Perhaps:
+(a) commit the short, truncated version of the file,
+then
+(b) commit the next-longer version of the file
+until there are no remaining versions.
+
+"""
+
+"""
+# FIXME:
+Support several "temp source" folders
+in addition to mounting the camera as a folder,
+in case some photos
+have already been pulled from the camera
+into a "temp source" folder.
+Move photos from the source
+to the git repo,
+but only if they're in the correct range.
+
+# FIXME:
+If we have a bunch of photos
+that go into a repo
+that exists on github,
+but doesn't exist locally,
+perhaps clone that repo locally first.
+
+# FIXME:
+perhaps
+encode the range
+in the repo itself,
+perhaps in a text file?
+
+# FIXME:
+both of the above sound great,
+but if we try to implement *both*,
+how do we know *which* repo a photo goes into?
+(I.e.,
+avoid the catch-22 of
+we need to know which repo a photo goes into
+in order to decide which one to clone,
+but
+we need to clone the repo first
+before we get the self-describing text file
+that tells which range of photos it contains.
+).
+Perhaps:
+Each repo contains not only its own range,
+but also
+a list of a few "nearby"
+repos and their ranges.
+
+"""
 
 def main(repo_path=None, phone_path=None, date_range=None):
     print("starting ab...")
