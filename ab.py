@@ -348,6 +348,7 @@ def pull_from_phone(phone_path=None):
         # https://askubuntu.com/questions/343502/how-to-rsync-to-android
         dest_temp_folder = "/media/sf_t/new/"
         dest_temp_folder = "/media/sf_t/2021-potential-octo-guide/2021"
+        dest_temp_folder = "/media/sf_t/new10/"
         """
         source_file_pattern = os.path.join(
                 phone_path, 
@@ -356,6 +357,8 @@ def pull_from_phone(phone_path=None):
                 )
         """
         source_file_pattern = "20211[0-9]*.jpg"
+        source_file_pattern = "2021[0-1][0-9]*.jpg" # works!
+        source_file_pattern = "20220[0-1]*.jpg"
         print("Using file pattern: ", source_file_pattern)
         photo_files = glob.glob(source_file_pattern)
         print("Found ", len(photo_files), " files.")
@@ -364,12 +367,16 @@ def pull_from_phone(phone_path=None):
         print("Found ", len(photo_files), " files.")
         if(photo_files):
             for the_file in photo_files:
-                print("moving ", the_file)
+                print("moving ",
+                        the_file,
+                        " to ",
+                        dest_temp_folder
+                    )
                 # FIXME:
                 # how to decide
                 # which files to move ("mv")
                 # and which files to copy ("cp") ?
-                subprocess.run(["cp",
+                subprocess.run(["mv",
                     the_file,
                     dest_temp_folder
                     ])
@@ -421,7 +428,7 @@ then
 until there are no remaining versions.
 
 """
-def sort_from_temp(temp_path=None, repo_path=None, date_range=None):
+def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
     all_exist = temp_path and repo_path and date_range
     if(not all_exist):
         print("temp path:", temp_path, " skipping.")
@@ -472,6 +479,14 @@ def sort_from_temp(temp_path=None, repo_path=None, date_range=None):
             print( photo_files, "no files found.")
     print("... done sorting from ", temp_path, ".")
 
+def sort_from_temps():
+    """ in addition to moving files
+    from temp folder(s) to appropriate repos,
+    also detect duplicate file names,
+    to avoid overwriting.
+    """
+    sort_from_one_temp(temp_path, repo_path, date_range)
+
 """
 # FIXME:
 Support several "temp source" folders
@@ -517,7 +532,7 @@ repos and their ranges.
 
 """
 
-def main(repo_path=None, phone_path=None, date_range=None):
+def handle_one_repo(repo_path=None, phone_path=None, date_range=None):
     print("starting ab...")
     subprocess.run(["date"])
     # FUTURE:
@@ -534,7 +549,7 @@ def main(repo_path=None, phone_path=None, date_range=None):
     subprocess.run(["date"])
     print("done!")
 
-if __name__ == "__main__":
+def handle_repos():
     r_path = "/media/sf_t/2021-cuddly-octo-broccoli/2021/"
     d_range = ["202101", "20210399"]
 
@@ -576,11 +591,22 @@ if __name__ == "__main__":
     p_path = "/run/user/1000/gvfs/mtp:host=SAMSUNG_SAMSUNG_Android_R58MC496J4W/Internal storage/DCIM/Camera"
     # The path for my phone includes ":" and a space.
     # But it appears I don't need to use "glob.escape".
-    main(
+    handle_one_repo(
         repo_path = r_path,
         phone_path = p_path,
         date_range = d_range
         )
+
+if __name__ == "__main__":
+    p_path = "/run/user/1000/gvfs/mtp:host=SAMSUNG_SAMSUNG_Android_R58MC496J4W/Internal storage/DCIM/Camera"
+    pull_from_phone(p_path)
+    # handle_repos()
+    # sort_from_temps()
+    sleep(10)
+    pull_from_phone(p_path)
+    sleep(30)
+    pull_from_phone(p_path)
+
 
 # as recommended by https://wiki.python.org/moin/Vim :
 # vim: set tabstop=8 expandtab shiftwidth=4 softtabstop=4 ignorecase :
