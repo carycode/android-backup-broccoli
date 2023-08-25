@@ -140,6 +140,10 @@ def get_file_size_M(the_file=None):
     file_size_M = round_up( file_size, (1024*1024) )
     return file_size_M
 
+def total_files_size_M(file_list):
+    # FIXME
+    return 0
+
 def get_unstaged_photos(photo_dir=None):
     # Future: perhaps 
     # look at all the photos in the folder
@@ -209,6 +213,30 @@ def push_to_remote(repo_path=None, date_range=None):
         print("git folder size: ", git_folder_size_M, " MByte.")
 
         max_repo_size_M = 2500 # ???? FUTURE: ????
+
+        if(1):
+            files_size_M = total_files_size_M(untracked_files)
+            estimated_total = git_folder_size_M + files_size_M
+            print(
+                "Considering adding about",
+                files_size_M,
+                " MByte more untracked files.",
+                " Estimated total: ",
+                    estimated_total,
+                " MByte."
+                )
+            if( estimated_total > max_repo_size_M):
+                print(
+                    "Estimated total repo: ",
+                    estimated_total,
+                    "too large; it's already ",
+                    git_folder_size_M,
+                    " MBytes",
+                    " and we're trying to add about",
+                    files_size_M,
+                    " more untracked files."
+                    )
+                return
 
         # Are there any untracked files?
         # (pythonic idiom, see
@@ -393,6 +421,56 @@ then
 until there are no remaining versions.
 
 """
+def sort_from_temp(temp_path=None, repo_path=None, date_range=None):
+    all_exist = temp_path and repo_path and date_range
+    if(not all_exist):
+        print("temp path:", temp_path, " skipping.")
+        print("repo path:", repo_path, " skipping.")
+        print("date range:", date_range, " skipping.")
+        return
+    if(temp_path):
+        print("Using temp path: ")
+        print(temp_path)
+        try:
+            os.chdir(temp_path)
+        except FileNotFoundError:
+            print("whoops! can't find temp path: ", temp_path)
+            return
+        print("Found it at: ")
+        print( os.getcwd() )
+        # FIXME:
+        # "Cross-platform way of getting temp directory in Python"
+        # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
+        # FUTURE:
+        # "How to rsync to android"
+        # https://askubuntu.com/questions/343502/how-to-rsync-to-android
+        source_file_pattern = os.path.join(
+                temp_path, 
+                "20210" +
+                "*.jpg"
+                )
+        source_file_pattern = "20211[0-9]*.jpg"
+        print("Using file pattern: ", source_file_pattern)
+        photo_files = glob.glob(source_file_pattern)
+        print("Found ", len(photo_files), " files.")
+        photo_files.sort()
+        print( photo_files )
+        print("Found ", len(photo_files), " files.")
+        if(photo_files):
+            for the_file in photo_files:
+                print("moving ", the_file)
+                # FIXME:
+                # how to decide
+                # which files to move ("mv")
+                # and which files to copy ("cp") ?
+                subprocess.run(["mv",
+                    the_file,
+                    dest_temp_folder
+                    ])
+                sleep(1) # seconds
+        else:
+            print( photo_files, "no files found.")
+    print("... done sorting from ", temp_path, ".")
 
 """
 # FIXME:
@@ -457,22 +535,36 @@ def main(repo_path=None, phone_path=None, date_range=None):
     print("done!")
 
 if __name__ == "__main__":
-    r_path = "/media/sf_t/n/2021-friendly-octo-disco/2021_b/"
+    r_path = "/media/sf_t/2021-cuddly-octo-broccoli/2021/"
+    d_range = ["202101", "20210399"]
+
+    # FIXME: tip of current branch is behind its remote counterpart
+    r_path = "/media/sf_t/2021-friendly-octo-disco/2021_b/"
+    d_range = ["202104", "20210499"]
+
     r_path = "/media/sf_t/k/2021-turbo-tube-memory/2021"
+    d_range = ["202105", "20210529"]
 
     r_path = "/media/sf_t/2021-cautious-enigma/2021"
-    d_range = ["202105", "20210599"]
+    d_range = ["20210529", "20210599"]
 
     r_path = "/media/sf_t/2021-friendly-octo-goggles/2021"
     d_range = ["202106", "20210699"]
 
     r_path = "/media/sf_t/2021-fuzzy-octo-sniffle/2021"
-    d_range = ["202107", "20210999"]
+    d_range = ["202107", "20210799"]
 
+    r_path = "/media/sf_t/2021-joke-expert-bassoon/2021"
+    d_range = ["202108", "20210999"]
 
     r_path = "/media/sf_t/2021-potential-octo-guide/2021"
     d_range = ["202110", "20211299"]
 
+    r_path = "/media/sf_t/2021-fluke-redesigned-garbanzo"
+    d_range = [] # FIXME:
+
+    r_path = "/media/sf_t/2022-silver-carnival-dross/2022"
+    d_range = ["202200", "20220199"]
 
     # inspired by
     # "Accessing MTP mounted device in terminal"
@@ -491,5 +583,5 @@ if __name__ == "__main__":
         )
 
 # as recommended by https://wiki.python.org/moin/Vim :
-# vim: set tabstop=8 expandtab shiftwidth=4 softtabstop=4 :
+# vim: set tabstop=8 expandtab shiftwidth=4 softtabstop=4 ignorecase :
 
