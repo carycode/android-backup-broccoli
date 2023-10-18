@@ -439,6 +439,8 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
             temp_path,
             " to ",
             repo_path,
+            " with date_range ",
+            date_range,
             "...")
     all_exist = temp_path and repo_path and date_range
     if(not all_exist):
@@ -456,56 +458,96 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
             return
         print("Found it at: ")
         print( os.getcwd() )
+        # FIXME: better representation of date range ...
         source_file_pattern = os.path.join(
                 temp_path, 
-                "20210" +
+                "2021" +
                 "*.jpg"
                 )
-        source_file_pattern = "20211[0-9]*.jpg"
-        print("Using file pattern: ", source_file_pattern)
+        print("Using source file pattern: ", source_file_pattern)
         photo_files = glob.glob(source_file_pattern)
         print("Found ", len(photo_files), " files.")
+        if( not photo_files ):
+            print( "photo_files: ",
+                photo_files, " no files found.")
+            return
         photo_files.sort()
-        print( photo_files )
+        print( [
+            photo_files[0],
+            " ... ",
+            photo_files[-1]
+            ]
+            )
+        # prints something like
+        # ['/media/sf_t/new10/20210324_104944.jpg',
+        # ' ... ',
+        # '/media/sf_t/new10/20210710_104813.jpg']
         print("Found ", len(photo_files), " files.")
         dest_file_pattern = os.path.join(
                 repo_path,
                 "*.jpg"
                 )
-        dest_files = glob.glob(dest_file_pattern)
-        dest_files.sort()
-        if( not photo_files ):
-            print( "photo_files: ",
-                photo_files, " no files found.")
-            return
-        print("debugging!!!!!!![")
-        for the_file in photo_files:
-            in_range = (
-                date_range[0] < the_file <= date_range[1]
+        print("Using repo file pattern: ", dest_file_pattern)
+        dest_files_full = glob.glob(dest_file_pattern)
+        dest_files_full.sort()
+        if(dest_files_full):
+            print(
+                "dest_files_full: ",
+                [
+                dest_files_full[0],
+                " ... ",
+                dest_files_full[-1]
+                ]
                 )
-            if( the_file in dest_files ):
+        # prints something like
+        # ['/media/sf_t/2021-cautious-enigma/2021/20210529_101817.jpg',
+        # '...',
+        # '/media/sf_t/2021-cautious-enigma/2021/20210531_114749.jpg']
+
+        # Use os.path.basename() to convert to
+        # just the file names (without the path):
+        # ['20210529_101817.jpg',
+        # '...',
+        # '20210531_114749.jpg']
+        dest_files = map(os.path.basename, dest_files_full)
+        # Use "list()" in order to avoid the
+        # "TypeError: 'map' object is not subscriptable" error.
+        # https://stackoverflow.com/questions/1303347/getting-a-map-to-return-a-list-in-python-3-x
+        dest_files = list(dest_files)
+        if(dest_files):
+            print(
+                "dest_files: ",
+                [
+                dest_files[0],
+                " ... ",
+                dest_files[-1]
+                ]
+                )
+        for the_file_full in photo_files:
+            the_file_name = os.path.basename(the_file_full)
+            in_range = (
+                date_range[0] < the_file_name <= date_range[1]
+                )
+            if( the_file_name in dest_files ):
                 print("whoops, ",
-                    the_file,
+                    the_file_full,
                     " already in ",
                     dest_file_pattern
                     )
             else:
-                print("Whee, ",
-                    the_file,
-                    " looks good."
-                    )
-        print("debugging!!!!!!!]")
-        return
-        for the_file in photo_files:
-                in_range = (
-                    date_range[0] < the_file <= date_range[1]
-                    )
-                print("moving ", the_file)
-                subprocess.run(["mv",
-                    the_file,
-                    dest_temp_folder
-                    ])
-                sleep(1) # seconds
+                if(in_range):
+                    print("Whee, ",
+                        the_file_full,
+                        " looks good."
+                        )
+                    print("moving ", the_file_full)
+                    subprocess.run(["mv",
+                        the_file_full,
+                        repo_path
+                        ])
+                    sleep(1) # seconds
+                    print("debugging!!!!!!![")
+                    return
     print("... done sorting from ",
             temp_path,
             " to ",
@@ -566,7 +608,7 @@ repos and their ranges.
 """
 
 def handle_one_repo(repo_path=None, phone_path=None, date_range=None):
-    print("starting ab...")
+    print("starting handle_one_repo...")
     subprocess.run(["date"])
     # FUTURE:
     # consider supporting
@@ -590,6 +632,7 @@ def handle_repos():
         date_range = d_range
         )
 
+    """
     # FIXME: tip of current branch is behind its remote counterpart
     r_path = "/media/sf_t/2021-friendly-octo-disco/2021_b/"
     d_range = ["202104", "20210499"]
@@ -600,15 +643,20 @@ def handle_repos():
         repo_path = r_path,
         date_range = d_range
         )
+    """
 
     r_path = "/media/sf_t/2021-cautious-enigma/2021"
     d_range = ["20210529", "20210599"]
     temp_folder = "/media/sf_t/new10/"
-    # FIXME: !!!!!! :  sort_from_one_temp(temp_folder, r_path, d_range)
     handle_one_repo(
         repo_path = r_path,
         date_range = d_range
         )
+    print("debugging sort_from_one_temp: ")
+    sort_from_one_temp(temp_folder, r_path, d_range)
+    print("done sort_from_one_temp.")
+    if( True ):
+        return
 
 
     r_path = "/media/sf_t/2021-friendly-octo-goggles/2021"
@@ -672,6 +720,7 @@ def handle_repos():
         )
 
 if __name__ == "__main__":
+    subprocess.run(["date"])
     p_path = "/run/user/1000/gvfs/mtp:host=SAMSUNG_SAMSUNG_Android_R58MC496J4W/Internal storage/DCIM/Camera"
     pull_from_phone(p_path)
     handle_repos()
