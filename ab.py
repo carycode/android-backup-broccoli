@@ -536,10 +536,6 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
                     )
             else:
                 if(in_range):
-                    print("Whee, ",
-                        the_file_full,
-                        " looks good."
-                        )
                     print("moving ", the_file_full)
                     subprocess.run(["mv",
                         the_file_full,
