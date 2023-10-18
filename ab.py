@@ -448,6 +448,16 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
         print("repo path:", repo_path, " skipping.")
         print("date range:", date_range, " skipping.")
         return
+    if(repo_path):
+        print("Using repo path: ")
+        print(repo_path)
+        try:
+            os.chdir(repo_path)
+        except FileNotFoundError:
+            print("whoops! can't find repo path: ", repo_path)
+            return
+        print("Found it at: ")
+        print( os.getcwd() )
     if(temp_path):
         print("Using temp path: ")
         print(temp_path)
@@ -481,7 +491,7 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
         # prints something like
         # ['/media/sf_t/new10/20210324_104944.jpg',
         # ' ... ',
-        # '/media/sf_t/new10/20210710_104813.jpg']
+        # '/media/sf_t/new10/20210529_101807(0).jpg']
         print("Found ", len(photo_files), " files.")
         dest_file_pattern = os.path.join(
                 repo_path,
@@ -542,8 +552,6 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
                         repo_path
                         ])
                     sleep(1) # seconds
-                    print("debugging!!!!!!![")
-                    return
     print("... done sorting from ",
             temp_path,
             " to ",
@@ -648,11 +656,7 @@ def handle_repos():
         repo_path = r_path,
         date_range = d_range
         )
-    print("debugging sort_from_one_temp: ")
     sort_from_one_temp(temp_folder, r_path, d_range)
-    print("done sort_from_one_temp.")
-    if( True ):
-        return
 
 
     r_path = "/media/sf_t/2021-friendly-octo-goggles/2021"
@@ -661,6 +665,7 @@ def handle_repos():
         repo_path = r_path,
         date_range = d_range
         )
+    sort_from_one_temp(temp_folder, r_path, d_range)
 
     r_path = "/media/sf_t/2021-fuzzy-octo-sniffle/2021"
     d_range = ["202107", "20210726_99"]
@@ -668,6 +673,7 @@ def handle_repos():
         repo_path = r_path,
         date_range = d_range
         )
+    sort_from_one_temp(temp_folder, r_path, d_range)
 
     r_path = "/media/sf_t/2021-fluke-redesigned-garbanzo/2021"
     d_range = ["20210727", "20210799"]
@@ -675,6 +681,7 @@ def handle_repos():
         repo_path = r_path,
         date_range = d_range
         )
+    sort_from_one_temp(temp_folder, r_path, d_range)
 
 
     r_path = "/media/sf_t/2021-joke-expert-bassoon/2021"
@@ -683,6 +690,7 @@ def handle_repos():
         repo_path = r_path,
         date_range = d_range
         )
+    sort_from_one_temp(temp_folder, r_path, d_range)
 
     r_path = "/media/sf_t/2021-potential-octo-guide/2021"
     d_range = ["202110", "20211299"]
