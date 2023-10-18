@@ -324,6 +324,11 @@ def push_to_remote(repo_path=None, date_range=None):
 
 
 
+# FIXME:
+# check how much free space is left,
+# (perhaps with "df")
+# and prematurely stop pulling photos after
+# the "starting" free space is, say, half-full.
 def pull_from_phone(phone_path=None):
     if(not phone_path):
         print("phone path: [", phone_path, "] empty -- skipping.")
@@ -343,6 +348,7 @@ def pull_from_phone(phone_path=None):
         # FIXME:
         # "Cross-platform way of getting temp directory in Python"
         # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
+
         # FUTURE:
         # "How to rsync to android"
         # https://askubuntu.com/questions/343502/how-to-rsync-to-android
@@ -429,6 +435,11 @@ until there are no remaining versions.
 
 """
 def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
+    print("Sorting from ",
+            temp_path,
+            " to ",
+            repo_path,
+            "...")
     all_exist = temp_path and repo_path and date_range
     if(not all_exist):
         print("temp path:", temp_path, " skipping.")
@@ -445,12 +456,6 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
             return
         print("Found it at: ")
         print( os.getcwd() )
-        # FIXME:
-        # "Cross-platform way of getting temp directory in Python"
-        # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
-        # FUTURE:
-        # "How to rsync to android"
-        # https://askubuntu.com/questions/343502/how-to-rsync-to-android
         source_file_pattern = os.path.join(
                 temp_path, 
                 "20210" +
@@ -463,21 +468,49 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
         photo_files.sort()
         print( photo_files )
         print("Found ", len(photo_files), " files.")
-        if(photo_files):
-            for the_file in photo_files:
+        dest_file_pattern = os.path.join(
+                repo_path,
+                "*.jpg"
+                )
+        dest_files = glob.glob(dest_file_pattern)
+        dest_files.sort()
+        if( not photo_files ):
+            print( "photo_files: ",
+                photo_files, " no files found.")
+            return
+        print("debugging!!!!!!![")
+        for the_file in photo_files:
+            in_range = (
+                date_range[0] < the_file <= date_range[1]
+                )
+            if( the_file in dest_files ):
+                print("whoops, ",
+                    the_file,
+                    " already in ",
+                    dest_file_pattern
+                    )
+            else:
+                print("Whee, ",
+                    the_file,
+                    " looks good."
+                    )
+        print("debugging!!!!!!!]")
+        return
+        for the_file in photo_files:
+                in_range = (
+                    date_range[0] < the_file <= date_range[1]
+                    )
                 print("moving ", the_file)
-                # FIXME:
-                # how to decide
-                # which files to move ("mv")
-                # and which files to copy ("cp") ?
                 subprocess.run(["mv",
                     the_file,
                     dest_temp_folder
                     ])
                 sleep(1) # seconds
-        else:
-            print( photo_files, "no files found.")
-    print("... done sorting from ", temp_path, ".")
+    print("... done sorting from ",
+            temp_path,
+            " to ",
+            repo_path,
+            ".")
 
 def sort_from_temps():
     """ in addition to moving files
@@ -552,34 +585,75 @@ def handle_one_repo(repo_path=None, phone_path=None, date_range=None):
 def handle_repos():
     r_path = "/media/sf_t/2021-cuddly-octo-broccoli/2021/"
     d_range = ["202101", "20210399"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
 
     # FIXME: tip of current branch is behind its remote counterpart
     r_path = "/media/sf_t/2021-friendly-octo-disco/2021_b/"
     d_range = ["202104", "20210499"]
 
-    r_path = "/media/sf_t/k/2021-turbo-tube-memory/2021"
+    r_path = "/media/sf_t/2021-turbo-tube-memory/2021"
     d_range = ["202105", "20210529"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
 
     r_path = "/media/sf_t/2021-cautious-enigma/2021"
     d_range = ["20210529", "20210599"]
+    temp_folder = "/media/sf_t/new10/"
+    # FIXME: !!!!!! :  sort_from_one_temp(temp_folder, r_path, d_range)
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+
 
     r_path = "/media/sf_t/2021-friendly-octo-goggles/2021"
     d_range = ["202106", "20210699"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
 
     r_path = "/media/sf_t/2021-fuzzy-octo-sniffle/2021"
-    d_range = ["202107", "20210799"]
+    d_range = ["202107", "20210726_99"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+
+    r_path = "/media/sf_t/2021-fluke-redesigned-garbanzo/2021"
+    d_range = ["20210727", "20210799"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+
 
     r_path = "/media/sf_t/2021-joke-expert-bassoon/2021"
     d_range = ["202108", "20210999"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
 
     r_path = "/media/sf_t/2021-potential-octo-guide/2021"
     d_range = ["202110", "20211299"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
 
-    r_path = "/media/sf_t/2021-fluke-redesigned-garbanzo"
-    d_range = [] # FIXME:
 
     r_path = "/media/sf_t/2022-silver-carnival-dross/2022"
     d_range = ["202200", "20220199"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
 
     # inspired by
     # "Accessing MTP mounted device in terminal"
@@ -600,12 +674,14 @@ def handle_repos():
 if __name__ == "__main__":
     p_path = "/run/user/1000/gvfs/mtp:host=SAMSUNG_SAMSUNG_Android_R58MC496J4W/Internal storage/DCIM/Camera"
     pull_from_phone(p_path)
-    # handle_repos()
+    handle_repos()
     # sort_from_temps()
     sleep(10)
     pull_from_phone(p_path)
     sleep(30)
     pull_from_phone(p_path)
+    subprocess.run(["date"])
+    print("done!")
 
 
 # as recommended by https://wiki.python.org/moin/Vim :
