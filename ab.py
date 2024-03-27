@@ -322,6 +322,19 @@ def push_to_remote(repo_path=None, date_range=None):
             sleep(10) # seconds
 
 
+def get_dest_temp_folder():
+        # FIXME:
+        # "Cross-platform way of getting temp directory in Python"
+        # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
+
+        # FUTURE:
+        # "How to rsync to android"
+        # https://askubuntu.com/questions/343502/how-to-rsync-to-android
+        dest_temp_folder = "/media/sf_t/new/"
+        dest_temp_folder = "/media/sf_t/2021-potential-octo-guide/2021"
+        dest_temp_folder = "/media/sf_t/new10/"
+        dest_temp_folder = "/media/sf_t/new3/"
+        return dest_temp_folder
 
 
 # FIXME:
@@ -334,6 +347,11 @@ def pull_from_phone(phone_path=None):
         print("phone path: [", phone_path, "] empty -- skipping.")
         return
     if(phone_path):
+        dest_temp_folder = get_dest_temp_folder()
+        print("dest_temp_folder: ",
+            dest_temp_folder
+            )
+
         print("Using phone path: ")
         print(phone_path)
         try:
@@ -345,16 +363,6 @@ def pull_from_phone(phone_path=None):
             return
         print("Found phone at: ")
         print( os.getcwd() )
-        # FIXME:
-        # "Cross-platform way of getting temp directory in Python"
-        # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
-
-        # FUTURE:
-        # "How to rsync to android"
-        # https://askubuntu.com/questions/343502/how-to-rsync-to-android
-        dest_temp_folder = "/media/sf_t/new/"
-        dest_temp_folder = "/media/sf_t/2021-potential-octo-guide/2021"
-        dest_temp_folder = "/media/sf_t/new10/"
         """
         source_file_pattern = os.path.join(
                 phone_path, 
@@ -365,6 +373,7 @@ def pull_from_phone(phone_path=None):
         source_file_pattern = "20211[0-9]*.jpg"
         source_file_pattern = "2021[0-1][0-9]*.jpg" # works!
         source_file_pattern = "20220[0-1]*.jpg"
+        source_file_pattern = "2022[0-1][0-9]*.jpg"
         print("Using file pattern: ", source_file_pattern)
         photo_files = glob.glob(source_file_pattern)
         print("Found ", len(photo_files), " files.")
@@ -469,9 +478,10 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
         print("Found it at: ")
         print( os.getcwd() )
         # FIXME: better representation of date range ...
+        the_year = date_range[0][:4]
         source_file_pattern = os.path.join(
                 temp_path, 
-                "2021" +
+                the_year +
                 "*.jpg"
                 )
         print("Using source file pattern: ", source_file_pattern)
@@ -629,6 +639,15 @@ def handle_one_repo(repo_path=None, phone_path=None, date_range=None):
     print("done!")
 
 def handle_repos():
+    r_path = "/media/sf_t/2022-trees-and-journey/2022"
+    d_range = ["202210", "20221099"]
+    temp_folder = "/media/sf_t/new3/"
+    sort_from_one_temp(temp_folder, r_path, d_range)
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+
     r_path = "/media/sf_t/2021-cuddly-octo-broccoli/2021/"
     d_range = ["202101", "20210399"]
     handle_one_repo(
@@ -636,10 +655,14 @@ def handle_repos():
         date_range = d_range
         )
 
-    """
-    # FIXME: tip of current branch is behind its remote counterpart
     r_path = "/media/sf_t/2021-friendly-octo-disco/2021_b/"
     d_range = ["202104", "20210499"]
+    temp_folder = "/media/sf_t/new10/"
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
 
     r_path = "/media/sf_t/2021-turbo-tube-memory/2021"
     d_range = ["202105", "20210529"]
@@ -647,7 +670,6 @@ def handle_repos():
         repo_path = r_path,
         date_range = d_range
         )
-    """
 
     r_path = "/media/sf_t/2021-cautious-enigma/2021"
     d_range = ["20210529", "20210599"]
@@ -669,6 +691,7 @@ def handle_repos():
 
     r_path = "/media/sf_t/2021-fuzzy-octo-sniffle/2021"
     d_range = ["202107", "20210726_99"]
+    temp_folder = "/media/sf_t/new3/"
     handle_one_repo(
         repo_path = r_path,
         date_range = d_range
@@ -694,10 +717,12 @@ def handle_repos():
 
     r_path = "/media/sf_t/2021-potential-octo-guide/2021"
     d_range = ["202110", "20211299"]
+    temp_folder = "/media/sf_t/new3/"
     handle_one_repo(
         repo_path = r_path,
         date_range = d_range
         )
+    sort_from_one_temp(temp_folder, r_path, d_range)
 
 
     r_path = "/media/sf_t/2022-silver-carnival-dross/2022"
