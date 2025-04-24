@@ -173,13 +173,23 @@ def get_unstaged_photos(photo_dir=None):
 def push_to_remote(repo_path=None, date_range=None):
     if(repo_path):
         print("Current working directory: ")
+        """
         print( os.getcwd() )
         os.chdir('/tmp')
+        """
         try:
             os.chdir(repo_path)
         except FileNotFoundError:
             print( os.getcwd() )
-            print("whoops! can't find: ", repo_path)
+            print("whoops! can't find: ", repo_path, " ; let's try to make folder.")
+            from pathlib import Path
+            # fix case where repo exists,
+            # but the "2025/" folder
+            # does not yet exist in it.
+            try:
+                Path(repo_path).mkdir(exist_ok=True)
+            except FileNotFoundError:
+                print( "Couldn't make folder ", repo_path)
             return
         print( os.getcwd() )
         subprocess.run(["git", "push"])
@@ -213,6 +223,7 @@ def push_to_remote(repo_path=None, date_range=None):
         print("git folder size: ", git_folder_size_M, " MByte.")
 
         max_repo_size_M = 2500 # ???? FUTURE: ????
+        max_repo_size_M = 2400 # ???? FUTURE: ????
 
         if(1):
             files_size_M = total_files_size_M(untracked_files)
@@ -227,7 +238,8 @@ def push_to_remote(repo_path=None, date_range=None):
                 )
             if( estimated_total > max_repo_size_M):
                 print(
-                    "Estimated total repo: ",
+                    repo_path,
+                    " Estimated total repo: ",
                     estimated_total,
                     "too large; it's already ",
                     git_folder_size_M,
@@ -252,7 +264,12 @@ def push_to_remote(repo_path=None, date_range=None):
 
             file_size_M = get_file_size_M(the_file)
 
-            print("with file size: ", file_size_M, " MByte")
+            print("with file size: ", file_size_M,
+                    " MByte ",
+                    "when repo is already about: ",
+                    git_folder_size_M,
+                    " MByte."
+                    )
             do_it = True
             if( ".jpg" != the_file[-4:] ):
                 # only photos (*.jpg)
@@ -278,7 +295,9 @@ def push_to_remote(repo_path=None, date_range=None):
             git_folder_size_M += file_size_M
             if( git_folder_size_M > max_repo_size_M):
                 print(
-                    "repo too large; it's already ",
+                    "repo '",
+                    repo_path,
+                    "' too large; it's already ",
                     git_folder_size_M,
                     " MBytes."
                     )
@@ -310,6 +329,8 @@ def push_to_remote(repo_path=None, date_range=None):
                     # "--dry-run"
                     ])
                 print( the_file, " pushed!" )
+                print("sleeping ...")
+                sleep(1) # seconds
             # FUTURE:
             # perhaps pull another photo
             # from phone?
@@ -318,8 +339,6 @@ def push_to_remote(repo_path=None, date_range=None):
             untracked_files = untracked_files[1:]
             if(1): # if(verbose):
                 print(len(untracked_files), "untracked files.")
-            print("sleeping ...")
-            sleep(10) # seconds
 
 
 def get_dest_temp_folder():
@@ -361,6 +380,11 @@ def pull_from_phone(phone_path=None):
             print("Try unplugging the phone and plugging it in again.")
             print("Try restarting the phone.")
             return
+        except OSError:
+            print("whoops! OSError trying to find: ", phone_path)
+            print("Try unplugging the phone and plugging it in again.")
+            print("Try restarting the phone.")
+            return
         print("Found phone at: ")
         print( os.getcwd() )
         """
@@ -374,8 +398,18 @@ def pull_from_phone(phone_path=None):
         source_file_pattern = "2021[0-1][0-9]*.jpg" # works!
         source_file_pattern = "20220[0-1]*.jpg"
         source_file_pattern = "2022[0-1][0-9]*.jpg"
+        source_file_pattern = "2022*.jpg"
+        source_file_pattern = "20230[0-3]*.jpg"
+        source_file_pattern = "20230[0-5]*.jpg"
         print("Using file pattern: ", source_file_pattern)
         photo_files = glob.glob(source_file_pattern)
+        if(0):
+            try:
+                weird_file = ""
+                photo_files.remove(weird_file)
+                print("Successfully removed: ", weird_file)
+            except ValueError:
+                pass
         print("Found ", len(photo_files), " files.")
         photo_files.sort()
         print( photo_files )
@@ -395,7 +429,7 @@ def pull_from_phone(phone_path=None):
                     the_file,
                     dest_temp_folder
                     ])
-                sleep(1) # seconds
+                sleep(0.5) # seconds
         else:
             print( photo_files, "no files found.")
     print("... done pulling from phone.")
@@ -549,10 +583,11 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
                 date_range[0] < the_file_name <= date_range[1]
                 )
             if( the_file_name in dest_files ):
-                print("whoops, ",
+                print("!!! whoops, ",
                     the_file_full,
                     " already in ",
-                    dest_file_pattern
+                    dest_file_pattern,
+                    " !!!"
                     )
             else:
                 if(in_range):
@@ -561,7 +596,7 @@ def sort_from_one_temp(temp_path=None, repo_path=None, date_range=None):
                         the_file_full,
                         repo_path
                         ])
-                    sleep(1) # seconds
+                    sleep(0.5) # seconds
     print("... done sorting from ",
             temp_path,
             " to ",
@@ -593,6 +628,9 @@ that go into a repo
 that exists on github,
 but doesn't exist locally,
 perhaps clone that repo locally first.
+Perhaps 
+    git clone --no-checkout
+?
 
 # FIXME:
 perhaps
@@ -638,49 +676,238 @@ def handle_one_repo(repo_path=None, phone_path=None, date_range=None):
     subprocess.run(["date"])
     print("done!")
 
-def handle_repos():
-    r_path = "/media/sf_t/2022-trees-and-journey/2022"
-    d_range = ["202210", "20221099"]
-    temp_folder = "/media/sf_t/new3/"
-    sort_from_one_temp(temp_folder, r_path, d_range)
+def handle_temp_folder( temp_folder ):
+    # sorted most-recent-on-top:
+
+    # ???
+    # git@github.com:carycode/2023-miniature-octo-disco.git
+    # git@github.com:carycode/2023-very-jubilant-garbanzo.git
+
+
+# git@github.com:carycode/2023-special-guide-starfish.git
+    r_path = "/media/sf_t/2023-special-guide-starfish/2023"
+    d_range = ["202303", "20230315"]
     handle_one_repo(
         repo_path = r_path,
         date_range = d_range
         )
+    sort_from_one_temp(temp_folder, r_path, d_range)
 
+
+# git@github.com:carycode/2023-little-miniature-octo-pancake.git
+    r_path = "/media/sf_t/2023-little-miniature-octo-pancake/2023"
+    d_range = ["20230215", "20230299"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+
+    # git clone git@github.com:carycode/2023-three-curly-fishstick.git
+    r_path = "/media/sf_t/2023-three-curly-fishstick/2023"
+    d_range = ["202302", "20230215"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+
+
+    # git@github.com:carycode/2023-some-effective-waddle.git
+    r_path = "/media/sf_t/2023-some-effective-waddle/2023"
+    d_range = ["20230115", "20230199"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+
+    # git@github.com:carycode/2023-jubilant-octo-fishstick.git
+    r_path = "/media/sf_t/2023-jubilant-octo-fishstick/2023"
+    d_range = ["202301", "20230115"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+
+    # git@github.com:carycode/2022-urban-giggle-snort.git 
+    r_path = "/media/sf_t/2022-urban-giggle-snort/2022"
+    d_range = ["20221216", "20221299"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+
+    # git@github.com:carycode/2022-vigilant-waffle-fries.git
+    r_path = "/media/sf_t/2022-vigilant-waffle-fries/2022"
+    d_range = ["202212", "20221216"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+
+    r_path = "/media/sf_t/2022-trees-and-journey/2022"
+    d_range = ["202210", "20221199"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+
+    r_path = "/media/sf_t/2022-friendly-nano-tribble/2022"
+    d_range = "FIXME:"
+    d_range = ["202206", "20220608"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+
+    r_path = "/media/sf_t/2022-grit-urban-memory/2022"
+    d_range = "FIXME:"
+    d_range = ["20220527_10", "20220599"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+    r_path = "/media/sf_t/2022-flux-redesigned-sniffle/2022"
+    d_range = ["20220521_14", "20220527_0999"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+    r_path = "/media/sf_t/2022-animated-octo-chainsaw/2022"
+    d_range = ["202205", "20220521_1399"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+
+    r_path = "/media/sf_t/2022-literate-octo-garbanzo/2022"
+    d_range = ["20220424_124", "20220499"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+    """
+    whoops, this overlaps 
+    2022-shiny-octo-doodle  --
+    what to do?
+    r_path = "/media/sf_t/2022-fluffy-octo-flower-machine/2022"
+    d_range = ["202203", "20220399"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+    """
+
+    """
+    2022-shiny-octo-doodle is full.
+    # git@github.com:carycode/2022-shiny-octo-doodle.git
+    r_path = "/media/sf_t/2022-shiny-octo-doodle/2022"
+    d_range = ["202203", "20220424_123"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+    """
+
+    r_path = "/media/sf_t/2022-a-silver-tribble/2022"
+    d_range = ["202202", "20220299"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
+    """
+    r_path = "/media/sf_t/2022-a-silver-tribble/2022"
+    d_range = ["202202", "20220299"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+    """
+
+    """
+    r_path = "/media/sf_t/2022-silver-carnival-dross/2022"
+    d_range = ["202200", "20220199"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+    """
+
+
+
+    """
+    2021-cuddly-octo-broccoli is full!
+    """
+
+    """
     r_path = "/media/sf_t/2021-cuddly-octo-broccoli/2021/"
     d_range = ["202101", "20210399"]
     handle_one_repo(
         repo_path = r_path,
         date_range = d_range
         )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+    """
+
 
     r_path = "/media/sf_t/2021-friendly-octo-disco/2021_b/"
     d_range = ["202104", "20210499"]
-    temp_folder = "/media/sf_t/new10/"
     handle_one_repo(
         repo_path = r_path,
         date_range = d_range
         )
     sort_from_one_temp(temp_folder, r_path, d_range)
 
+    """
     r_path = "/media/sf_t/2021-turbo-tube-memory/2021"
     d_range = ["202105", "20210529"]
     handle_one_repo(
         repo_path = r_path,
         date_range = d_range
         )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+    """
 
+    """
     r_path = "/media/sf_t/2021-cautious-enigma/2021"
     d_range = ["20210529", "20210599"]
-    temp_folder = "/media/sf_t/new10/"
     handle_one_repo(
         repo_path = r_path,
         date_range = d_range
         )
     sort_from_one_temp(temp_folder, r_path, d_range)
+    """
 
 
+    """
     r_path = "/media/sf_t/2021-friendly-octo-goggles/2021"
     d_range = ["202106", "20210699"]
     handle_one_repo(
@@ -688,16 +915,20 @@ def handle_repos():
         date_range = d_range
         )
     sort_from_one_temp(temp_folder, r_path, d_range)
+    """
 
+    """
+    2021-fuzzy-octo-sniffle is full.
     r_path = "/media/sf_t/2021-fuzzy-octo-sniffle/2021"
     d_range = ["202107", "20210726_99"]
-    temp_folder = "/media/sf_t/new3/"
     handle_one_repo(
         repo_path = r_path,
         date_range = d_range
         )
     sort_from_one_temp(temp_folder, r_path, d_range)
+    """
 
+    """
     r_path = "/media/sf_t/2021-fluke-redesigned-garbanzo/2021"
     d_range = ["20210727", "20210799"]
     handle_one_repo(
@@ -705,8 +936,10 @@ def handle_repos():
         date_range = d_range
         )
     sort_from_one_temp(temp_folder, r_path, d_range)
+    """
 
 
+    """
     r_path = "/media/sf_t/2021-joke-expert-bassoon/2021"
     d_range = ["202108", "20210999"]
     handle_one_repo(
@@ -714,23 +947,42 @@ def handle_repos():
         date_range = d_range
         )
     sort_from_one_temp(temp_folder, r_path, d_range)
+    """
 
+    """
     r_path = "/media/sf_t/2021-potential-octo-guide/2021"
     d_range = ["202110", "20211299"]
-    temp_folder = "/media/sf_t/new3/"
     handle_one_repo(
         repo_path = r_path,
         date_range = d_range
         )
     sort_from_one_temp(temp_folder, r_path, d_range)
+    """
 
 
-    r_path = "/media/sf_t/2022-silver-carnival-dross/2022"
-    d_range = ["202200", "20220199"]
-    handle_one_repo(
-        repo_path = r_path,
-        date_range = d_range
-        )
+def handle_repos():
+    """
+    handle_temp_folder( "/media/sf_t/new2/")
+    """
+    handle_temp_folder( "/media/sf_t/new3/")
+    """
+    handle_temp_folder( "/media/sf_t/new4/")
+    handle_temp_folder( "/media/sf_t/new5/")
+    handle_temp_folder( "/media/sf_t/new6/")
+    handle_temp_folder( "/media/sf_t/new10/")
+    handle_temp_folder( "/media/sf_t/newer1/")
+    handle_temp_folder( "/media/sf_t/newer2/")
+    handle_temp_folder( "/media/sf_t/newer3/")
+    handle_temp_folder( "/media/sf_t/newer4/")
+    handle_temp_folder( "/media/sf_t/newer5/")
+    handle_temp_folder( "/media/sf_t/newer6/")
+    handle_temp_folder( "/media/sf_t/newer7/")
+    handle_temp_folder( "/media/sf_t/newer8/")
+    handle_temp_folder( "/media/sf_t/newer9/")
+    """
+
+
+def to_merge_pull_from_phone():
 
     # inspired by
     # "Accessing MTP mounted device in terminal"
