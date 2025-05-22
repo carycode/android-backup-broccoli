@@ -62,6 +62,23 @@ seems to be no longer necessary.
 
 
 """
+FIXME: update the README.md documentation,
+moving some of the comments out of this file.
+
+FIXME: add docstrings.
+
+FIXME: make a --dry-run option,
+perhaps initially the default.
+
+FIXME:
+make easier for people to install this,
+perhaps using ideas from:
+"Modern Python Boilerplate - good package basic structure"
+https://www.reddit.com/r/Python/comments/1krsxut/modern_python_boilerplate_good_package_basic/
+and
+"A Modern Python Repository Template with UV and Just"
+https://www.reddit.com/r/Python/comments/1ime8ja/a_modern_python_repository_template_with_uv_and/
+
 FUTURE:
 add logging, perhaps
 https://python-docs.readthedocs.io/en/latest/writing/logging.html
