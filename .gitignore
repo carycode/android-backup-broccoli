@@ -1,0 +1,28 @@
+
+
+# .gitignore
+# 2025-05-21: started by David Cary.
+
+
+# 2025-05-21:
+# The Spyder IDE puts a "/.spyproject/" folder in the root of this repo.
+# FIXME: Should some/all of it go into the git repository?
+# For now,
+# Ignore that entire folder:
+/.spyproject/**
+
+# 2025-05-21: FIXME:
+# "Basic .gitignore template for Python projects"
+#  https://gist.github.com/GhostofGoes/94580e76cd251972b15b4821c8a06f59
+# ignores the entire "/.spyproject/" folder.
+# FIXME: what else can I learn from it?
+
+# 2025-05-21: FIXME:
+# should I include more of the things mentioned in 
+# "Best practices for adding .gitignore file for Python projects?"
+# https://stackoverflow.com/questions/3719243/best-practices-for-adding-gitignore-file-for-python-projects
+# and
+# https://github.com/github/gitignore/blob/main/Python.gitignore
+
+
+
