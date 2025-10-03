@@ -96,6 +96,12 @@ def main():
             "~/Documents",
             # "/media/sf_Documents/",
             ]
+    """
+    Rather than the above hard-wired list,
+    perhaps use a json config file
+    like
+    https://github.com/Catfriend1/syncthing-android/blob/main/wiki/Sync-N-first-files-get-N-movies-for-watching.md
+    """
     for folder in repofolders:
         push_all_git_repos(folder)
     subprocess.run(["date"])
