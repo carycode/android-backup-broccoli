@@ -7,6 +7,16 @@
 # 2025-09-11: started by David Cary
 """
 
+"""
+FIXME: perhaps add a --dry-run option
+that carefully avoids actually changing anything,
+only listing what it *would* have done.
+(perhaps initially the default,
+followed by
+"Do you want to continue? [Y/n] "
+)
+"""
+
 import subprocess
 import glob
 import os
