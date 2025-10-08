@@ -21,6 +21,30 @@ import subprocess
 import glob
 import os
 
+
+def size_of_folder_M(folder):
+    """
+    """
+    result = subprocess.run([
+        "du",
+        # "--human-readable", # output like "5.0G Photos"
+        "--block-size=1M", # output like "5078  Photos"
+        "--summarize",
+        # "--threshold=1G", # exclude entries smaller than 1G
+        folder,
+        ],
+        text=True, # FUTURE: ???
+        # put outputs in result, rather than printing them immediately
+        capture_output=True,
+        )
+    size_M = int(result.stdout)
+    debug = True
+    if( debug ):
+        print( result.stderr );
+        print( f"{size_M=}" )   
+        pass
+    return
+
 def push_one_git_folder(repo_folder):
     """
     This folder
@@ -55,11 +79,23 @@ def push_one_git_folder(repo_folder):
         )
     if( "Everything up-to-date" == result.stderr.strip() ):
         print( f"push success! {repo_folder=}" )
+        folder_size_M = size_of_folder_M( repo_folder )
+        print( f"{folder_size_M=}")
+    elif( result.stderr.startswith("fatal: detected dubious ownership in repository") ):
+        print( result.stderr );
+        print( f"dubious ownership, skipping {repo_folder=}" )   
+        pass
+    elif( result.stderr.startswith("fatal: not a git repository") ):
+        # print( result.stderr );
+        print( f"not a git repository, skipping {repo_folder=}" ) 
+        pass
     else:
         #TODO: ??
         #FIXME: ?
-        print( result.stderr );
+        print( f"{result.stderr=}" );
+        print( f"{result.stout=}" );
         print( f"... [FIXME:] ... {repo_folder=}" )
+        pass
     return
 
 def push_all_git_repos(folder_of_repos):
@@ -106,6 +142,8 @@ def main():
     as part of the process to find those repos.
     """
     repofolders = [
+            os.path.abspath("/media/sf_Docs/t/"),
+            os.path.abspath("/media/sf_Docs/"),
             os.path.abspath("../"),
             os.path.expanduser("~/Documents/"),
             os.path.abspath("../Documents/"),
