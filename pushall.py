@@ -42,8 +42,9 @@ def push_one_git_folder(repo_folder):
             "isn't a folder I can go to from here."
             )
         return
-
-    print( os.getcwd() )
+    current_folder = os.getcwd()
+    assert (current_folder ==
+            repo_folder), f"Ooops, expected {current_folder=} == {repo_folder=}"
     result = subprocess.run([
         "git",
         "push",
@@ -52,41 +53,43 @@ def push_one_git_folder(repo_folder):
         # put outputs in result, rather than printing them immediately
         capture_output=True,
         )
-    print( "pushed!" )
-    print( result.stderr );
+    if( "Everything up-to-date" == result.stderr.strip() ):
+        print( f"push success! {repo_folder=}" )
+    else:
+        #TODO: ??
+        #FIXME: ?
+        print( result.stderr );
+        print( f"... [FIXME:] ... {repo_folder=}" )
+    return
 
-def push_all_git_repos(folder):
-    print("looking for repos in: ", folder)
+def push_all_git_repos(folder_of_repos):
+    print("looking for repos in: ", folder_of_repos)
     # blindly try *all* subfolders
-    # immediately under the given folder
+    # immediately inside the given folder
     # list one per line
     try:
-        os.chdir(folder)
+        os.chdir(folder_of_repos)
     except FileNotFoundError:
         print( os.getcwd() )
         print("Whoops! Apparently ",
-            folder,
+            folder_of_repos,
             "isn't a folder I can go to from here."
             )
         return
-    result = subprocess.run([
-        "ls",
-        "1", # one item per line
-        ],
-        text=True, # FUTURE: ???
-        # put outputs in result, rather than printing them immediately
-        capture_output=True,
-        )
-    potential_repo_string = result.stdout
-    # assume no newlines in file names
-    potential_repos = potential_repo_string.splitlines()
+    current_folder = os.getcwd()
+    assert (current_folder ==
+            folder_of_repos), f"Ooops, expected {current_folder=} == {folder_of_repos=}"
+    potential_repos = os.listdir( current_folder )
     for i in potential_repos:
-        print(i)
+        one_repo_folder = os.path.normpath( os.path.join( folder_of_repos, i ) )
+        isdir = os.path.isdir( one_repo_folder )
+        if(isdir):
+            push_one_git_folder(one_repo_folder)
     return
 
 def main():
     version = "0.2025.1.00000" # FUTURE: append git commit hash?
-    printf( "pushall version ", version )
+    print( "pushall version ", version )
     subprocess.run(["date"])
     """
     FIXME:
@@ -103,8 +106,10 @@ def main():
     as part of the process to find those repos.
     """
     repofolders = [
-            "~/Documents",
-            # "/media/sf_Documents/",
+            os.path.abspath("../"),
+            os.path.expanduser("~/Documents/"),
+            os.path.abspath("../Documents/"),
+            # os.path.abspath("/media/sf_Documents/"),
             ]
     """
     Rather than the above hard-wired list,
