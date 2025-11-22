@@ -79,15 +79,21 @@ def push_one_git_folder(repo_folder):
     """
     try:
         os.chdir(repo_folder)
+        folder_size_M = size_of_folder_M( repo_folder )
     except FileNotFoundError:
         print( os.getcwd() )
         print("Whoops! Apparently ", repo_folder,
             "isn't a folder I can go to from here."
             )
         return
+
     current_folder = os.getcwd()
-    assert (current_folder ==
-            repo_folder), f"Ooops, expected {current_folder=} == {repo_folder=}"
+    assert (
+        current_folder ==
+        repo_folder), f"Ooops, expected {current_folder=} == {repo_folder=}"
+
+    print( f"{folder_size_M=}")
+
     result = subprocess.run([
         "git",
         "push",
@@ -97,9 +103,57 @@ def push_one_git_folder(repo_folder):
         capture_output=True,
         )
     if( "Everything up-to-date" == result.stderr.strip() ):
+        """
+        FIXME: sometimes git says this even when there's uncommitted files
+        (in a subfolder)
+        i.e., even though "everything" is up-to-date,
+        sometimes running "git status"
+        says
+            ...
+            
+            Untracked files:
+              (use "git add <file>..." to include in what will be committed)
+            ...
+            
+            nothing added to commit but untracked files present (use "git add" to track) 
+        and other times "git status"
+        says
+            ...            
+            nothing to commit, working tree clean
+        ...
+        FUTURE: how to handle these 2 cases?
+        """
         print( f"push success! {repo_folder=}" )
-        folder_size_M = size_of_folder_M( repo_folder )
-        print( f"{folder_size_M=}")
+        
+        
+        status_result = subprocess.run([
+            "git",
+            "status",
+            "--untracked"
+            ],
+            text=True, # FUTURE: ???
+            # put outputs in result, rather than printing them immediately
+            capture_output=True,
+            )
+        if( -1 != status_result.stdout.find("Untracked files:") ):
+            print( f"Untracked files in {repo_folder=}")
+            print( f"{status_result.stderr=}" );
+            print( f"{status_result.stdout=}" );
+            pass
+        elif( -1 != status.result.stdout.find("Changes not staged") )
+            print( f""Changes not staged" in {repo_folder=}")
+            print( f"{status_result.stderr=}" );
+            print( f"{status_result.stdout=}" );
+            pass
+        else:
+            #TODO: ??
+            # FIXME: ??
+            print( f"{status_result.stderr=}" );
+            print( f"{status_result.stdout=}" );
+            print( f"... [FIXME:] ... {repo_folder=}" )
+            pass        
+
+        pass
     elif( result.stderr.startswith("fatal: detected dubious ownership in repository") ):
         print( result.stderr );
         print( f"dubious ownership, skipping {repo_folder=}" )   
