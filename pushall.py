@@ -21,14 +21,29 @@ import subprocess
 import glob
 import os
 
+class FolderClass:
+    def __init__(self):
+        fullpath = ""
+        is_git_repo = False
+        pass
+
+class FileClass:
+    def __init__(self):
+        fullpath = ""
+        bytesize = 0
+        name = ""
+        
 
 def size_of_folder_M(folder):
     """
+    FUTURE: 
+        import shutil
+        total, used, free = shutil.disk_usage(path)
     """
     result = subprocess.run([
         "du",
-        # "--human-readable", # output like "5.0G Photos"
-        "--block-size=1M", # output like "5078  Photos"
+        # "--human-readable", # output like "5.0G\tPhotos"
+        "--block-size=1M", # output like "5078\tPhotos"
         "--summarize",
         # "--threshold=1G", # exclude entries smaller than 1G
         folder,
@@ -37,13 +52,17 @@ def size_of_folder_M(folder):
         # put outputs in result, rather than printing them immediately
         capture_output=True,
         )
-    size_M = int(result.stdout)
+    assert ("" == result.stderr), "I expected stderr to be empty..."
+    # ...split("None", ...) splits on runs of consecutive whitespace
+    # where tabs, spaces, etc. are considered whitespace.
+    words = result.stdout.split(None, 1)
+    size_M = int(words[0])
     debug = True
     if( debug ):
         print( result.stderr );
         print( f"{size_M=}" )   
         pass
-    return
+    return size_M
 
 def push_one_git_folder(repo_folder):
     """
