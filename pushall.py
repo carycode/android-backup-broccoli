@@ -140,8 +140,8 @@ def push_one_git_folder(repo_folder):
             print( f"{status_result.stderr=}" );
             print( f"{status_result.stdout=}" );
             pass
-        elif( -1 != status.result.stdout.find("Changes not staged") )
-            print( f""Changes not staged" in {repo_folder=}")
+        elif( -1 != status_result.stdout.find("Changes not staged") ):
+            print( f"Changes not staged in {repo_folder=}" )
             print( f"{status_result.stderr=}" );
             print( f"{status_result.stdout=}" );
             pass
@@ -215,12 +215,13 @@ def main():
     as part of the process to find those repos.
     """
     repofolders = [
+            os.path.abspath("/media/sf_Documents/"),
+            os.path.abspath("/media/sf_Documents/Documents/"),
             os.path.abspath("/media/sf_Docs/t/"),
             os.path.abspath("/media/sf_Docs/"),
-            os.path.abspath("../"),
-            os.path.expanduser("~/Documents/"),
-            os.path.abspath("../Documents/"),
-            # os.path.abspath("/media/sf_Documents/"),
+            #os.path.abspath("../"),
+            #os.path.expanduser("~/Documents/"),
+            #os.path.abspath("../Documents/"),
             ]
     """
     Rather than the above hard-wired list,

@@ -702,6 +702,14 @@ def handle_temp_folder( temp_folder ):
 
 
 # git@github.com:carycode/2023-special-guide-starfish.git
+    r_path = "/media/sf_Documents/2023-special-guide-starfish/2023"
+    d_range = ["202303", "20230315"]
+    handle_one_repo(
+        repo_path = r_path,
+        date_range = d_range
+        )
+    sort_from_one_temp(temp_folder, r_path, d_range)
+
     r_path = "/media/sf_t/2023-special-guide-starfish/2023"
     d_range = ["202303", "20230315"]
     handle_one_repo(
