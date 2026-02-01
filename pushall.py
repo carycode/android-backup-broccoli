@@ -166,7 +166,7 @@ def push_one_git_folder(repo_folder):
         #TODO: ??
         #FIXME: ?
         print( f"{result.stderr=}" );
-        print( f"{result.stout=}" );
+        print( f"{result.stdout=}" );
         print( f"... [FIXME:] ... {repo_folder=}" )
         pass
     return
